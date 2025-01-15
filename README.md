@@ -1,1 +1,1 @@
-COMP 539 group project 
+COMP 539 Group 3 project 

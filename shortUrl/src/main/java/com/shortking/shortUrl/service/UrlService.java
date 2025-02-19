@@ -25,6 +25,7 @@ public class UrlService {
     }
 
     private String generateShortCode() {
+        // generate random id with 8 characters
         return UUID.randomUUID().toString().substring(0, 8);
     }
 

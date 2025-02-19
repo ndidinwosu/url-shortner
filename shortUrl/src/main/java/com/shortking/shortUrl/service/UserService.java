@@ -4,7 +4,7 @@ package com.shortking.shortUrl.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+//import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import com.shortking.shortUrl.model.User;
@@ -16,7 +16,8 @@ public class UserService {
     private UserRepository userRepository;
 
     public User registerUser(User user) {
-        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+//        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+        user.setPassword("testpassword");
         return userRepository.save(user);
     }
 

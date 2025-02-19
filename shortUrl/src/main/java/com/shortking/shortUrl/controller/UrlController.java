@@ -39,4 +39,8 @@ public class UrlController {
             return ResponseEntity.notFound().build();
         }
     }
+    @GetMapping("/test")
+    public String test() {
+        return "test";
+    }
 }

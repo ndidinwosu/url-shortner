@@ -10,12 +10,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.lang.model.util.Elements;
+
 @Document(collection = "urls")
 @Getter
 @Setter
 public class Url {
     @Id
     private String id;
+//    private ShortUrl shortCode;
+//    private OriginalUrl originalUrl;
     private String shortCode;
     private String originalUrl;
     private String userId;
@@ -25,4 +29,32 @@ public class Url {
     private Map<String, Object> metadata;
 
     // Getters and Setters
+    public Url(String originalUrl) {
+        this.originalUrl = originalUrl;
+    }
+    public String getShortCode() {
+        return shortCode;
+    }
+    public void setShortCode(String shortCode) {
+        this.shortCode = shortCode;
+    }
+    public String getOriginalUrl() {
+        return originalUrl;
+    }
+//    public Url(OriginalUrl originalUrl) {
+//        this.originalUrl = originalUrl;
+//    }
+//    public ShortUrl getShortCode() {
+//        return shortCode;
+//    }
+//    public void setShortCode(ShortUrl shortCode) {
+//        this.shortCode = shortCode;
+//    }
+//    public OriginalUrl getOriginalUrl() {
+//        return originalUrl;
+//    }
+//
+//    public void setOriginalUrl(OriginalUrl originalUrl) {
+//        this.originalUrl = originalUrl;
+//    }
 }

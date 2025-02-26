@@ -34,8 +34,9 @@
 
         const url = document.getElementById('url').value;
 
-        // Make a POST request to your Spring Boot backend
-        const response = await fetch('http://localhost:8080/urls/shorten', {
+        // use POST request to get to backend
+        const baseUrl = window.location.origin;  // get actual url
+        const response = await fetch(`${baseUrl}/urls/shorten`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

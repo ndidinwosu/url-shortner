@@ -18,16 +18,18 @@ public class ShortenUtil {
             str.insert(0, ALPHABET.charAt((int) (num % BASE)));
             num /= BASE;
         }
-        // limit to 7 characters, so it stays short? (can change later)
-        if (str.length() > 7) {
-            System.out.println("ok we got:" + str.substring(0, 7));
-            return str.substring(0, 7);
-        }
-        // if it is short enough, use as is
-        else {
-            System.out.println("it was short enough:" + str);
-            return str.toString();
-        }
+        // commmented code was to limit shortCode to 7 characters, but led to many collisions
+//        // limit to 7 characters, so it stays short? (can change later)
+//        if (str.length() > 7) {
+//            System.out.println("ok we got:" + str.substring(0, 7));
+//            return str.substring(0, 7);
+//        }
+//        // if it is short enough, use as is
+//        else {
+//            System.out.println("it was short enough:" + str);
+//            return str.toString();
+//        }
+        return str.toString();
     }
 
     // reverses the process, finds the id correlating to the shortURL

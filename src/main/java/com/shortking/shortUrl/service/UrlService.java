@@ -34,7 +34,7 @@ public class UrlService {
 
         // create shortened url code using given database id
         String shortCode = ShortenUtil.idToStr(savedUrl.getId());
-        System.out.println(originalUrl + " shortened to " + shortCode);
+        System.out.println(originalUrl + " with id " + savedUrl.getId() + " shortened to " + shortCode);
 
         // update the database with Url that has both original and short fields
         savedUrl.setShortCode(shortCode);

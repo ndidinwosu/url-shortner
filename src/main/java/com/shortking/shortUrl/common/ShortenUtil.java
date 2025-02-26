@@ -9,18 +9,23 @@ public class ShortenUtil {
 
     // converts id for the longUrl into a string for the shortUrl
     public static String idToStr(String id){
-        long num = new BigInteger(id, 16).longValue();
+        // ensure that it is a positive number!!
+        long num = Math.abs(new BigInteger(id, 16).longValue());
+        System.out.println("here is the id: " + id);
+        System.out.println("here is the num: " + num);
         StringBuilder str = new StringBuilder();
         while (num > 0) {
             str.insert(0, ALPHABET.charAt((int) (num % BASE)));
             num /= BASE;
         }
-        // limit to 7 characters, so it stays short?
+        // limit to 7 characters, so it stays short? (can change later)
         if (str.length() > 7) {
+            System.out.println("ok we got:" + str.substring(0, 7));
             return str.substring(0, 7);
         }
         // if it is short enough, use as is
         else {
+            System.out.println("it was short enough:" + str);
             return str.toString();
         }
     }

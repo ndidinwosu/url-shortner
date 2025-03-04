@@ -15,6 +15,16 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+
+    public void saveUser(User user) {
+        userRepository.save(user);
+    }
+
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+
     public User registerUser(User user) {
 //        user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
         user.setPassword("testpassword");

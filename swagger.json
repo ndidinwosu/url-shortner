@@ -1,0 +1,323 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ShortKing API",
+    "version": "1.0.0",
+    "description": "API specification for ShortKing URL shortener service"
+  },
+  "servers": [
+    {
+      "url": "https://api.shortking.com/v1",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/urls": {
+      "get": {
+        "summary": "Get user's URLs with metrics",
+        "description": "Retrieves all URLs created by the authenticated user with their associated metrics",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of URLs with metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/URLMetrics"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create shortened URL",
+        "description": "Creates a new shortened URL with optional custom alias and expiration",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/URLShortenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "URL shortened successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortenedURL"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "summary": "Get user's overall statistics",
+        "description": "Retrieves aggregated statistics for all URLs of the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/urls/check": {
+      "post": {
+        "summary": "Check URL safety",
+        "description": "Checks if a URL is safe using Google Web Risk API",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "required": ["url"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "URL safety check result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebRiskResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid URL"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ShortenedURL": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "shortUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "originalUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "clicks": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "expired"]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "qrCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "shortUrl",
+          "originalUrl",
+          "clicks",
+          "createdAt",
+          "status"
+        ]
+      },
+      "URLMetrics": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ShortenedURL"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "uniqueVisitors": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "avgResponseTime": {
+                "type": "number",
+                "minimum": 0
+              },
+              "lastClicked": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "deviceStats": {
+                "type": "object",
+                "properties": {
+                  "mobile": {
+                    "type": "integer"
+                  },
+                  "desktop": {
+                    "type": "integer"
+                  },
+                  "tablet": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "locationStats": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              },
+              "referrerStats": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "URLShortenRequest": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "customAlias": {
+            "type": "string",
+            "nullable": true
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Expiration time in hours",
+            "nullable": true
+          }
+        },
+        "required": ["url"]
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "totalUrls": {
+            "type": "integer"
+          },
+          "totalClicks": {
+            "type": "integer"
+          },
+          "activeUrls": {
+            "type": "integer"
+          },
+          "expiredUrls": {
+            "type": "integer"
+          },
+          "avgResponseTime": {
+            "type": "number"
+          },
+          "uniqueVisitors": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "totalUrls",
+          "totalClicks",
+          "activeUrls",
+          "expiredUrls",
+          "avgResponseTime",
+          "uniqueVisitors"
+        ]
+      },
+      "WebRiskResponse": {
+        "type": "object",
+        "properties": {
+          "threat": {
+            "type": "object",
+            "properties": {
+              "threatTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expireTime": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "nullable": true
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

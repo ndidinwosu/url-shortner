@@ -12,6 +12,9 @@ public interface UrlRepository extends MongoRepository<Url, String> {
     @Query("{shortCode:'?0'}")
     Optional<Url> findByShortCode(String shortCode);
 
+    Optional<Url> findByShortUrl(String shortUrl);
+    List<Url> findByCreatedBy(String createdBy);
+
     @Query("{originalUrl:'?0'}")
     Optional<Url> findByOriginalUrl(String original);
 

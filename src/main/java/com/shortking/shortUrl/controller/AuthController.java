@@ -22,7 +22,7 @@ import io.swagger.annotations.Example;
 import io.swagger.annotations.ExampleProperty;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/user")
 public class AuthController {
 
     @Autowired

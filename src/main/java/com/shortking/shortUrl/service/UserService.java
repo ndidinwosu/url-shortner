@@ -36,6 +36,7 @@ public class UserService {
         // hash password before saving to database for security
         String hashedPassword = passwordEncoder.encode(rawPassword);
         User newUser = new User(email, hashedPassword);
+        System.out.println("made new user: " + newUser);
         return userRepository.save(newUser);
     }
 

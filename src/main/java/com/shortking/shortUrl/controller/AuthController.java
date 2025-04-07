@@ -51,8 +51,8 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> registerUser(@RequestBody RegisterRequest request) {
         try {
             
-            String email = request.getEmail("email");
-            String password = request.getPassword("password");
+            String email = request.getEmail();
+            String password = request.getPassword();
 
             userService.registerUser(email, password);
             return ResponseEntity.ok(Map.of("message", " Registration successful! You can now log in."));
@@ -90,8 +90,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> loginUser(@RequestBody RegisterRequest request) {
         try {
-            String email = request.getEmail("email");
-            String password = request.getPassword("password");
+            String email = request.getEmail();
+            String password = request.getPassword();
 
             String token = userService.authenticateUser(email, password);
             return ResponseEntity.ok(Map.of("message", "Login successful!", "token", token));

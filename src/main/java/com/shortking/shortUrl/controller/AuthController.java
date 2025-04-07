@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+
 import io.swagger.annotations.Example;
 import io.swagger.annotations.ExampleProperty;
 

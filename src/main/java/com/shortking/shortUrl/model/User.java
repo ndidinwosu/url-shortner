@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class User {
 
     @Schema(description = "User id", example = "1")
-    private Long id;
+    private String id;
 
     @Schema(description = "User email", example = "user@example.com")
     private String email;
@@ -25,10 +25,10 @@ public class User {
     private String apiKey;
 
     // Getters and setters for all properties
-    public Long getId() {
+    public String getId() {
         return id;
     }
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
     public String getEmail() {

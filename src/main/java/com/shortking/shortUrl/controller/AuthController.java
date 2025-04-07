@@ -16,8 +16,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Example;
+import io.swagger.annotations.ExampleProperty;
+
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/users")
 public class AuthController {
 
     @Autowired
@@ -68,6 +74,7 @@ public class AuthController {
         try {
             String email = request.getEmail();
             String password = request.getPassword();
+            System.out.println("email: " + email + ", password: " + password);
 
             // Basic validation; adjust fields as necessary
             if (email == null || !email.contains("@")) {

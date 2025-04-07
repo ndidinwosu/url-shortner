@@ -23,6 +23,23 @@ public class UserService {
         // Validate password length
         if (password == null || password.length() < 6) {
             throw new Exception("Password must be at least 6 characters long");
+
+        // hash password before saving to database for security
+        String hashedPassword = passwordEncoder.encode(rawPassword);
+        User newUser = new User(email, hashedPassword);
+        System.out.println("made new user: " + newUser);
+        return userRepository.save(newUser);
+    }
+
+    // check if the user email and password is an actual user in repo
+    public String authenticateUser(String email, String rawPassword) throws Exception {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (passwordEncoder.matches(rawPassword, user.getPassword())) {
+                return securityConfig.generateToken(user.getId(), user.getEmail());
+            }
         }
         // Create and initialize a new user (ID is assumed to be auto-generated)
         User user = new User();

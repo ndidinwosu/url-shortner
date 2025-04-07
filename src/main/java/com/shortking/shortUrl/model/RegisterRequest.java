@@ -1,18 +1,16 @@
 package com.shortking.shortUrl.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel(description = "request for login/register")
+@Schema(description = "User registration (and login) request")
 public class RegisterRequest {
-    
-    @ApiModelProperty(value = "email", example = "user@example.com")
+
+    @Schema(description = "User email", example = "user@example.com")
     private String email;
-    
-    @ApiModelProperty(value = "password", example = "password123")
+
+    @Schema(description = "User password", example = "password123")
     private String password;
 
-    // getters and setters
     public String getEmail() {
         return email;
     }

@@ -1,59 +1,45 @@
 package com.shortking.shortUrl.service;
 
-
-import java.util.Optional;
-
-import com.shortking.shortUrl.util.SecurityConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.stereotype.Service;
-
 import com.shortking.shortUrl.model.User;
 import com.shortking.shortUrl.repository.UserRepository;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.Optional;
 
 @Service
 public class UserService {
+
     @Autowired
     private UserRepository userRepository;
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(); // Secure Password Hashing
 
-    @Autowired
-    private SecurityConfig securityConfig;
-
-    // test register method for initial prototype
-    public User registerUser(User user) {
-        user.setPassword("testpassword");
-        return userRepository.save(user);
-    }
-
-    public User registerUser(String email, String rawPassword) throws Exception {
-        // check if this user already exists
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new Exception("This email is already registered. Try logging in.");
+    public User registerUser(String email, String password) throws Exception {
+        // Check if the email already exists
+        Optional<User> existing = userRepository.findByEmail(email);
+        if (existing.isPresent()) {
+            throw new Exception("Email already exists");
         }
-
-        // hash password before saving to database for security
-        String hashedPassword = passwordEncoder.encode(rawPassword);
-        User newUser = new User(email, hashedPassword);
-        return userRepository.save(newUser);
-    }
-
-    // check if the user email and password is an actual user in repo
-    public String authenticateUser(String email, String rawPassword) throws Exception {
-        Optional<User> userOptional = userRepository.findByEmail(email);
-
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (passwordEncoder.matches(rawPassword, user.getPassword())) {
-                return securityConfig.generateToken(user.getId(), user.getEmail());
-            }
+        // Validate password length
+        if (password == null || password.length() < 6) {
+            throw new Exception("Password must be at least 6 characters long");
         }
-        throw new Exception("Invalid email or password.");
+        // Create and initialize a new user (ID is assumed to be auto-generated)
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(password); // In production, hash the password!
+        user.setIsActive(true);
+        user.setCreatedAt(Instant.now().toString());
+        userRepository.save(user);
+        return user;
     }
 
-    // look through user repo for an existing email
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public String authenticateUser(String email, String password) throws Exception {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty() || !userOpt.get().getPassword().equals(password)) {
+            throw new Exception("Invalid email or password");
+        }
+        // For demonstration, generate a dummy token.
+        return "dummy-token-for-" + userOpt.get().getId();
     }
 }

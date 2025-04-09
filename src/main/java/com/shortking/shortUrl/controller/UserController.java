@@ -41,24 +41,27 @@ public class UserController {
                             schema = @Schema(implementation = List.class),
                             examples = {
                                     @ExampleObject(
-                                            value = "[\n" +
-                                                    " {\n" +
-                                                    "  \"id\": \"string\",\n" +
-                                                    "  \"short_url\": \"https://short.xyz/akW29\",\n" +
-                                                    "  \"original_url\": \"https://www.example.com\",\n" +
-                                                    "  \"clicks\": 0,\n" +
-                                                    "  \"created_at\": \"2025-04-09T05:21:55.102Z\",\n" +
-                                                    "  \"status\": \"active\",\n" +
-                                                    "  \"expires_at\": \"2025-04-09T05:21:55.102Z\",\n" +
-                                                    "  \"avg_response_time\": 0\n" +
-                                                    "  \"last_clicked\": \"2025-04-09T05:21:55.102Z\"\n" +
-                                                    "  \"device_stats\": {\n" +
-                                                    "   \"additionalProp1\": 0\n" +
-                                                    "   \"additionalProp2\": 0\n" +
-                                                    "   \"additionalProp3\": 0\n" +
-                                                    "   }\n" +
-                                                    " }\n" +
-                                                    "]"
+                                            value =
+                                                    """
+                                                            [
+                                                              {
+                                                                "id": "string",
+                                                                "short_url": "string",
+                                                                "original_url": "string",
+                                                                "clicks": 0,
+                                                                "created_at": "2025-04-09T18:35:36.355Z",
+                                                                "status": "string",
+                                                                "expires_at": "2025-04-09T18:35:36.355Z",
+                                                                "unique_visitors": 0,
+                                                                "avg_response_time": 0,
+                                                                "last_clicked": "2025-04-09T18:35:36.355Z",
+                                                                "device_stats": {
+                                                                  "additionalProp1": 0,
+                                                                  "additionalProp2": 0,
+                                                                  "additionalProp3": 0
+                                                                }
+                                                              }
+                                                            ]"""
                                     )
                             }
                     )

@@ -3,6 +3,7 @@ package com.shortking.shortUrl.controller;
 import java.util.Date;
 import java.util.Map;
 
+import com.shortking.shortUrl.model.ResetPasswordRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -200,6 +201,43 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "logout", description = "Log out an existing user")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Logout successful",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Map.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "success example",
+                                            value = "{\n" +
+                                                    "  \"message\": \"Logout successful\"\n" +
+                                                    "}"
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Validation Error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = "{\n" +
+                                            "  \"detail\": [\n" +
+                                            "    {\n" +
+                                            "      \"loc\": [\"body\", 0],\n" +
+                                            "      \"msg\": \"Invalid token\",\n" +
+                                            "      \"type\": \"validation\"\n" +
+                                            "    }\n" +
+                                            "  ]\n" +
+                                            "}"
+                            )
+                    )
+            )
+    })
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -222,15 +260,71 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of("message", "Logout successful"));
     }
+    @Operation(summary = "forget password", description = "Recover for when user forgets password")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Logout successful",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Map.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "success example",
+                                            value = "{\n" +
+                                                    "  \"message\": \"If the email exists, a reset link has been sent.\"\n" +
+                                                    "}"
+                                    )
+                            }
+                    )
+            )
+    })
      @PostMapping("/forget-password")
         public ResponseEntity<?> forgetPassword(@RequestParam String email) {
             return userService.handleForgetPassword(email);
         }
 
+    @Operation(summary = "reset password", description = "User resets their password")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Logout successful",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Map.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "success example",
+                                            value = "{\n" +
+                                                    "  \"message\": \"Password has been reset successfully\"\n" +
+                                                    "}"
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Validation Error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = "{\n" +
+                                            "  \"detail\": [\n" +
+                                            "    {\n" +
+                                            "      \"loc\": [\"body\", 0],\n" +
+                                            "      \"msg\": \"Missing code or newPassword\",\n" +
+                                            "      \"type\": \"validation\"\n" +
+                                            "    }\n" +
+                                            "  ]\n" +
+                                            "}"
+                            )
+                    )
+            )
+    })
         @PostMapping("/reset-password")
-        public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
-            String code = body.get("code");
-            String newPassword = body.get("newPassword");
+        public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest body) {
+            String code = body.getCode();
+            String newPassword = body.getNewPassword();
 
             return userService.handleResetPassword(code, newPassword);
 }

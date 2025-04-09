@@ -138,11 +138,11 @@ public class UserService {
         }
     
         try {
-            // 解码 token，获取 userId 和 email
+
             String userId = securityConfig.extractUserId(code);
             String email = securityConfig.extractEmail(code);
     
-            // 检查 token 是否过期/无效
+
             if (!securityConfig.validateToken(code)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid or expired reset code"));
             }
@@ -154,7 +154,7 @@ public class UserService {
     
             User user = userOpt.get();
     
-            // 更新密码（记得 hash）
+
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
     

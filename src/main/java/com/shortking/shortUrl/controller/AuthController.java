@@ -1,25 +1,31 @@
 package com.shortking.shortUrl.controller;
 
+import java.util.Date;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.shortking.shortUrl.exception.ValidationException;
+import com.shortking.shortUrl.model.BlacklistedToken;
 import com.shortking.shortUrl.model.RegisterRequest;
 import com.shortking.shortUrl.model.User;
+import com.shortking.shortUrl.repository.BlacklistedTokenRepository;
 import com.shortking.shortUrl.service.UserService;
+import com.shortking.shortUrl.util.SecurityConfig;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
-
-
-
-import io.swagger.annotations.Example;
-import io.swagger.annotations.ExampleProperty;
 
 @RestController
 @RequestMapping("/user")
@@ -27,6 +33,12 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private BlacklistedTokenRepository blacklistedTokenRepository;
+
+    @Autowired
+    private SecurityConfig securityConfig;
 
     @Operation(summary = "register", description = "Register a new user")
     @ApiResponses(value = {
@@ -185,5 +197,28 @@ public class AuthController {
                 )
             ));
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Missing or invalid Authorization header"));
+        }
+
+        String token = authHeader.substring(7); // remove "Bearer "
+
+        if (!securityConfig.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid token"));
+        }
+
+        Date expiry = securityConfig.extractExpiration(token);
+
+        BlacklistedToken blacklistedToken = new BlacklistedToken();
+        blacklistedToken.setToken(token);
+        blacklistedToken.setExpiry(expiry);
+
+        blacklistedTokenRepository.save(blacklistedToken);
+
+        return ResponseEntity.ok(Map.of("message", "Logout successful"));
     }
 }

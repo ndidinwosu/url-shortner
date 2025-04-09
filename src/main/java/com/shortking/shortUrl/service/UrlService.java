@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import com.shortking.shortUrl.model.Url;
 import com.shortking.shortUrl.repository.UrlRepository;
 
+import javax.swing.text.html.Option;
+
 @Service
 public class UrlService {
     @Autowired
@@ -21,7 +23,7 @@ public class UrlService {
     private static final String BASE_URL = "http://short.xyz/";
 
     // creates a shorter url given the longer one
-    public String generateShortUrl(String longUrl, String customAlias, Integer expiresIn) throws Exception {
+    public Map<String, Object> generateShortUrl(String longUrl, String customAlias, Integer expiresIn) throws Exception {
         try {
             System.out.println("generate short url");
             // check if the custom alias already exists
@@ -32,20 +34,22 @@ public class UrlService {
                 }
             }
 
-            // create a new short URL
+            // create a new short URL (use alias if given one)
             String shortUrl = (customAlias != null && !customAlias.isEmpty()) ?
                     BASE_URL + customAlias : BASE_URL + generateRandomString();
-            // set expiration date
+            // set expiration date (if given one)
             LocalDateTime expirationTime = (expiresIn != null) ? LocalDateTime.now().plusSeconds(expiresIn) : null;
 
 
             Url newUrl = new Url(longUrl, shortUrl, customAlias, expirationTime);
+            newUrl.setActive(true);
             System.out.println(shortUrl);
             // save to url repository
             urlRepository.save(newUrl);
             System.out.println("saved " + newUrl);
 
-            return shortUrl;
+//            return shortUrl;
+            return newUrl.response();
         } catch (DuplicateKeyException e) {
             throw new Exception("The alias you selected is already in use. Try another alias.");
         } catch (Exception e) {
@@ -63,6 +67,7 @@ public class UrlService {
             // check if enough time has passed to expire url
             if (url.getExpiresAt() != null && LocalDateTime.now().isAfter(url.getExpiresAt())) {
                 urlRepository.delete(url); // Delete expired URL
+                url.setActive(false);
                 return Optional.empty();   // Return empty (indicating expired)
             }
 
@@ -188,7 +193,7 @@ public class UrlService {
     }
 
     public Optional<Url> checkOriginalUrlAlreadyExists(String originalUrl) {
-        return urlRepository.findByOriginalUrl(originalUrl);
+        return urlRepository.findByLongUrl(originalUrl);
     }
 
     public Optional<Url> getOriginalUrl(String shortCode) {

@@ -2,6 +2,7 @@ package com.shortking.shortUrl.model;
 
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.data.annotation.Id;
@@ -11,45 +12,55 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Getter;
 import lombok.Setter;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import javax.lang.model.util.Elements;
+
 
 @Document(collection = "urls")
 @Getter
 @Setter
+@Schema(description = "Url model")
 public class Url {
+    @Schema(description = "Url database Id", example = "67f3d190b905642a6ebca529")
     @Id
     private String id;
-//    private ShortUrl shortCode;
-//    private OriginalUrl originalUrl;
+    // used for test controller
     private String shortCode;
-    private String originalUrl;
     private String userId;
-    private LocalDateTime createAt;
-    private LocalDateTime expireAt;
+    @Setter
     private boolean isActive;
-    private Map<String, Object> metadata;
 
+    @Schema(description = "original long url", example = "https://www.example.com")
     private String longUrl;
+    @Schema(description = "shortened url", example = "https://www.short.xyz/Sc8lp or https://www.short.xyz/example")
     private String shortUrl;
+    @Schema(description = "optional custom alias for premium users", example = "example")
     @Indexed(unique = true)
     private String customAlias;
+    @Schema(description = "number of times url has been clicked", example = "2")
     private int clicks;
+    @Schema(description = "time url was created", example = "2025-04-08T21:38:19.66573")
     private LocalDateTime createdAt;
+    @Schema(description = "time url is set to expire", example = "2025-04-08T21:38:19.66573")
     private LocalDateTime expiresAt;
     private String qrCode;
     private String createdBy;
 
     // Analytics Data
+    @Schema(description = "number of unique visitors", example = "2")
     private int uniqueVisitors;
+    @Schema(description = "average time for response when url is clicked", example = "0")
     private double avgResponseTime;
+    @Schema(description = "time url was last clicked", example = "2025-04-08T21:38:19.66573")
     private LocalDateTime lastClicked;
     private Map<String, Integer> deviceStats;
     private Map<String, Integer> locationStats;
     private Map<String, Integer> referrerStats;
 
     // Getters and Setters
-    public Url(String originalUrl) {
-        this.originalUrl = originalUrl;
+    public Url(String longUrl) {
+        this.longUrl = longUrl;
     }
 
     public Url() {
@@ -65,6 +76,23 @@ public class Url {
         this.expiresAt = expiresAt;
         this.clicks = 0;
     }
+
+    public Map<String, Object> response() {
+        Map<String, Object> urlResponse = new HashMap<>();
+        urlResponse.put("id", this.id);
+        urlResponse.put("short_url", this.shortUrl);
+        urlResponse.put("original_url", this.longUrl);
+        urlResponse.put("clicks", this.clicks);
+        urlResponse.put("created_at", this.createdAt);
+        if (this.isActive) {
+            urlResponse.put("status", "active");
+        } else {
+            urlResponse.put("status", "expired");
+        }
+        urlResponse.put("expires_at", this.expiresAt);
+        urlResponse.put("qr_code", this.qrCode);
+        return urlResponse;
+    }
     public String getShortCode() {
         return shortCode;
     }
@@ -72,7 +100,7 @@ public class Url {
         this.shortCode = shortCode;
     }
     public String getOriginalUrl() {
-        return originalUrl;
+        return longUrl;
     }
 
 }

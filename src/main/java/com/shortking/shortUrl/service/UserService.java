@@ -1,5 +1,6 @@
 package com.shortking.shortUrl.service;
 
+import com.shortking.shortUrl.exception.ValidationException;
 import com.shortking.shortUrl.model.User;
 import com.shortking.shortUrl.repository.UserRepository;
 import com.shortking.shortUrl.util.SecurityConfig;
@@ -53,13 +54,17 @@ public class UserService {
             if (passwordEncoder.matches(rawPassword, user.getPassword())) {
                 return securityConfig.generateToken(user.getId(), user.getEmail());
             }
+            // if user exists but just the password is wrong, tell the user they typed password wrong
+            else {
+                throw new ValidationException("Incorrect password");
+            }
         }
         // if it didn't match, return an exception
        else {
-            throw new Exception("Invalid email or password");
+            throw new ValidationException("Invalid email or password");
         }
         // return error string
-        return "error, invalid email or password";
+//        return "error, invalid email or password";
         // For demonstration, generate a dummy token.
 //        return "dummy-token-for-" + userOpt.get().getId();
     }

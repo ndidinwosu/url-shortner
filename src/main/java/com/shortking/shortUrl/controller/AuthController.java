@@ -73,7 +73,7 @@ public class AuthController {
         try {
             String email = request.getEmail();
             String password = request.getPassword();
-            System.out.println("email: " + email + ", password: " + password);
+//            System.out.println("email: " + email + ", password: " + password);
 
             // Basic validation; adjust fields as necessary
             if (email == null || !email.contains("@")) {
@@ -152,8 +152,8 @@ public class AuthController {
             if (request.getEmail() == null || request.getEmail().isEmpty()) {
                 throw new ValidationException("Email is required");
             }
-            if (request.getPassword() == null || request.getPassword().length() < 6) {
-                throw new ValidationException("Password must be at least 6 characters long");
+            if (request.getPassword() == null || request.getPassword().isEmpty()) {
+                throw new ValidationException("Password is required");
             }
 
             // Attempt authentication

@@ -23,7 +23,7 @@ public class UrlService {
     private static final String BASE_URL = "http://short.xyz/";
 
     // creates a shorter url given the longer one
-    public Map<String, Object> generateShortUrl(String longUrl, String customAlias, Integer expiresIn) throws Exception {
+    public Map<String, Object> generateShortUrl(String longUrl, String customAlias, Integer expiresIn, String userId) throws Exception {
         try {
             System.out.println("generate short url");
             // check if the custom alias already exists
@@ -42,6 +42,9 @@ public class UrlService {
 
 
             Url newUrl = new Url(longUrl, shortUrl, customAlias, expirationTime);
+            // save the user id of the user creating this url if premium (will be null if not premium)
+            newUrl.setCreatedBy(userId);
+            // set url to active
             newUrl.setActive(true);
             System.out.println(shortUrl);
             // save to url repository

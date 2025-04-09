@@ -24,19 +24,17 @@ public class DefaultController {
                     description = "",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Map.class),
+
                             examples = {
                                     @ExampleObject(
-                                            value = "{\n" +
-                                                    "  \"string\": \"string\"\n" +
-                                                    "}"
+                                            value = "welcome to the shortking backend >:)"
                                     )
                             }
                     )
             )
     })
     @GetMapping("/")
-    public ResponseEntity<String> readRoot() {
-        return ResponseEntity.ok("read root"); // ask frontend team if this is what they meant???
+    public String readRoot() {
+        return "welcome to the shortking backend >:)"; // ask frontend team if this is what they meant???
     }
 }

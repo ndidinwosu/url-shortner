@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -63,9 +64,25 @@ public class UserService {
        else {
             throw new ValidationException("Invalid email or password");
         }
-        // return error string
-//        return "error, invalid email or password";
-        // For demonstration, generate a dummy token.
-//        return "dummy-token-for-" + userOpt.get().getId();
+    }
+
+    // use jwt token to get the current user (needed for user dashboard statistics)
+    public User getCurrentUser(String token) {
+        try {
+            // decode the user's token
+            String userId = securityConfig.extractUserId(token);
+            if (userId == null) {
+                throw new ValidationException("Could not validate credentials");
+            }
+
+            // confirm that the user is in the database
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isEmpty()) {
+                throw new ValidationException("User not found");
+            }
+            return user.get();
+        } catch (Exception ex) {
+            throw new ValidationException("Could not validate credentials");
+        }
     }
 }

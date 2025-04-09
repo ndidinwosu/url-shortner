@@ -1,11 +1,13 @@
 package com.shortking.shortUrl.model;
 
+import org.springframework.data.annotation.Id;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "User model")
 public class User {
 
-    @Schema(description = "User id", example = "1")
+    @Schema(description = "User id", example = "67f3d190b905642a6ebca529")
+    @Id
     private String id;
 
     @Schema(description = "User email", example = "user@example.com")

@@ -27,9 +27,7 @@ public class DefaultController {
 
                             examples = {
                                     @ExampleObject(
-                                            value = "{\n" +
-                                                    "  \"welcome to the shortking backend >:)\"\n" +
-                                                    "}"
+                                            value = "welcome to the shortking backend >:)"
                                     )
                             }
                     )

@@ -2,12 +2,15 @@ package com.shortking.shortUrl.controller;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import com.shortking.shortUrl.model.BasicUrlRequest;
 import com.shortking.shortUrl.model.PremiumUrlRequest;
+import com.shortking.shortUrl.model.Url;
 import com.shortking.shortUrl.model.User;
+import com.shortking.shortUrl.repository.UrlRepository;
 import com.shortking.shortUrl.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,6 +32,8 @@ public class UrlController {
     private UrlService urlService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UrlRepository urlRepository;
 
     @Operation(summary = "Premium Shortening", description = "Shortens a Url for Premium Users, with custom options")
     @ApiResponses(value = {
@@ -90,6 +95,95 @@ public class UrlController {
 
             Map<String, Object> urlResponse = urlService.generateShortUrl(longUrl, customAlias, expiresIn, userId);
             return ResponseEntity.ok(urlResponse);
+        } catch (Exception e) {
+            // return a 422 response
+            return ResponseEntity.status(422).body(Map.of(
+                    "detail",
+                    java.util.List.of(Map.of(
+                            "loc", java.util.List.of("body", 0),
+                            "msg", e.getMessage(),
+                            "type", "validation"
+                    ))
+            ));
+        }
+    }
+
+
+    @Operation(summary = "Update Custom Url", description = "Changes the custom url to a new alias when provided")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successful Response",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Map.class),
+                            examples = {
+                                    @ExampleObject(
+                                            value = "{\n" +
+                                                    "  \"id\": \"string\",\n" +
+                                                    "  \"short_url\": \"https://short.xyz/akW29\",\n" +
+                                                    "  \"original_url\": \"https://www.example.com\",\n" +
+                                                    "  \"clicks\": 0,\n" +
+                                                    "  \"created_at\": \"2025-04-09T05:21:55.102Z\",\n" +
+                                                    "  \"status\": \"active\",\n" +
+                                                    "  \"expires_at\": \"2025-04-09T05:21:55.102Z\",\n" +
+                                                    "  \"qr_code\": \"string\"\n" +
+                                                    "}"
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Validation Error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = "{\n" +
+                                            "  \"detail\": [\n" +
+                                            "    {\n" +
+                                            "      \"loc\": [\"body\", 0],\n" +
+                                            "      \"msg\": \"The alias you selected is already in use. Try another alias.\",\n" +
+                                            "      \"type\": \"validation\"\n" +
+                                            "    }\n" +
+                                            "  ]\n" +
+                                            "}"
+                            )
+                    )
+            )
+    })
+
+    @PutMapping("/{alias}")
+    // allows premium user to update the alias of a shortened url
+    public ResponseEntity<Map<String, Object>> changeAlias(@RequestHeader("Authorization") String authorizationHeader,
+                                                           @PathVariable String alias,
+                                                           @RequestParam String newAlias) {
+        System.out.println("change alias called");
+        try {
+            // use token to get user
+            String token = authorizationHeader.replace("Bearer ", "");
+            // get the current user from the token
+            String userId = userService.getCurrentUser(token).getId();
+            // check to see if user has a url with that alias
+            List<Url> userUrls = urlService.getUserUrls(userId);
+
+            Url urlToUpdate = null;
+            for (Url url : userUrls) {
+                if (url.getCustomAlias().equals(alias)) {
+                    urlToUpdate = url;
+                    break;
+                }
+            }
+
+            if (urlToUpdate != null) {
+                urlToUpdate.setCustomAlias(newAlias);
+                urlToUpdate.setShortUrl("http://short.xyz/" + newAlias);
+                // update this url (with the same id
+                urlRepository.save(urlToUpdate);
+                return ResponseEntity.ok(urlToUpdate.response());
+            } else {
+                throw new Exception("User does not have url with this alias");
+            }
         } catch (Exception e) {
             // return a 422 response
             return ResponseEntity.status(422).body(Map.of(

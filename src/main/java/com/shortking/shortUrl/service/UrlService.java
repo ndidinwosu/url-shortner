@@ -100,9 +100,10 @@ public class UrlService {
             url.setReferrerStats(new HashMap<>());
         }
 
-        // update total number of unique visitors
-        if (!url.getDeviceStats().containsKey(userIp)) {
-            url.setUniqueVisitors(url.getUniqueVisitors() + 1);
+        // increase unique visitor count if ip is unique
+        if (!url.getVisitorSet().contains(userIp)) {
+            url.getVisitorSet().add(userIp);
+            url.setUniqueVisitors(url.getVisitorSet().size());
         }
 
         // update last clicked timestamp

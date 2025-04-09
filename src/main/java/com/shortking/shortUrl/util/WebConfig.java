@@ -20,6 +20,7 @@ public class WebConfig {
 
         // the urls that will be filtered
         registrationBean.addUrlPatterns("/urls/shorten-premium");
+        registrationBean.addUrlPatterns("/users/stats");
 
         return registrationBean;
     }

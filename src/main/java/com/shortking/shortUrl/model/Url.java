@@ -3,7 +3,9 @@ package com.shortking.shortUrl.model;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -50,6 +52,8 @@ public class Url {
     // Analytics Data
     @Schema(description = "number of unique visitors", example = "2")
     private int uniqueVisitors;
+    @Schema(description = "set of ip addresses that have visited this url", example = "[92.168.1.1]")
+    private Set<String> visitorSet;
     @Schema(description = "average time for response when url is clicked", example = "0")
     private double avgResponseTime;
     @Schema(description = "time url was last clicked", example = "2025-04-08T21:38:19.66573")
@@ -75,6 +79,7 @@ public class Url {
         this.createdAt = LocalDateTime.now();
         this.expiresAt = expiresAt;
         this.clicks = 0;
+        this.visitorSet = new HashSet<>();
     }
 
     public Map<String, Object> response() {

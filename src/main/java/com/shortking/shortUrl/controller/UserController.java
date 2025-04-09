@@ -17,6 +17,8 @@ import com.shortking.shortUrl.model.User;
 import com.shortking.shortUrl.service.UserService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,17 +38,27 @@ public class UserController {
                     description = "Successful response",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = Map.class),
+                            schema = @Schema(implementation = List.class),
                             examples = {
                                     @ExampleObject(
-                                            value = "{\n" +
-                                                    "  \"total_urls\": 0,\n" +
-                                                    "  \"total_clicks\": 0,\n" +
-                                                    "  \"active_urls\": 0,\n" +
-                                                    "  \"expired_urls\": 0,\n" +
-                                                    "  \"avg_response_time\": 0,\n" +
-                                                    "  \"unique_visitors\": 0\n" +
-                                                    "}"
+                                            value = "[\n" +
+                                                    " {\n" +
+                                                    "  \"id\": \"string\",\n" +
+                                                    "  \"short_url\": \"https://short.xyz/akW29\",\n" +
+                                                    "  \"original_url\": \"https://www.example.com\",\n" +
+                                                    "  \"clicks\": 0,\n" +
+                                                    "  \"created_at\": \"2025-04-09T05:21:55.102Z\",\n" +
+                                                    "  \"status\": \"active\",\n" +
+                                                    "  \"expires_at\": \"2025-04-09T05:21:55.102Z\",\n" +
+                                                    "  \"avg_response_time\": 0\n" +
+                                                    "  \"last_clicked\": \"2025-04-09T05:21:55.102Z\"\n" +
+                                                    "  \"device_stats\": {\n" +
+                                                    "   \"additionalProp1\": 0\n" +
+                                                    "   \"additionalProp2\": 0\n" +
+                                                    "   \"additionalProp3\": 0\n" +
+                                                    "   }\n" +
+                                                    " }\n" +
+                                                    "]"
                                     )
                             }
                     )
@@ -54,7 +66,7 @@ public class UserController {
     })
     @GetMapping("/stats")
     // gets all analytics associated with a user's links
-    public ResponseEntity<Map<String, Object>> getUserUrlAnalysis(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<List<Map<String, Object>>> getUserUrlAnalysis(@RequestHeader("Authorization") String authorizationHeader) {
         // get token from header
         String token = authorizationHeader.replace("Bearer ", "");
         // use method in userService to get the user
@@ -63,48 +75,27 @@ public class UserController {
         List<Url> userUrls = urlService.getUserUrls(userId);
 
         if (userUrls.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("message", "No URLs found for user " + userId));
+            return ResponseEntity.status(404).body(List.of(Map.of("message", "No URLs found for user " + userId)));
         }
 
-        // calculating statistics for the user
-        int activeUrls = 0;
-        int expiredUrls = 0;
-        int totalClicks = 0;
-        double avgResponseTime = 0;
-        int uniqueVisitors = 0;
+        // return all stats for all urls
+        List<Map<String, Object>> allUrls = new ArrayList<>();
 
         for (Url url : userUrls) {
-            if (url.isActive()) {
-                activeUrls++;
-            } else {
-                expiredUrls++;
-            }
-            totalClicks += url.getClicks();
-            avgResponseTime += url.getAvgResponseTime();
-            uniqueVisitors += url.getUniqueVisitors();
+            Map<String, Object> urlMap = new HashMap<>();
+            urlMap.put("id", url.getId());
+            urlMap.put("short_url", url.getShortUrl());
+            urlMap.put("original_url", url.getOriginalUrl());
+            urlMap.put("clicks", url.getClicks());
+            urlMap.put("created_at", url.getCreatedAt());
+            urlMap.put("status", (url.isActive()) ? "active" : "expired");
+            urlMap.put("expires_at", url.getExpiresAt());
+            urlMap.put("unique_visitors", url.getUniqueVisitors());
+            urlMap.put("avg_response_time", url.getAvgResponseTime());
+            urlMap.put("device_stats", url.getDeviceStats());
+            allUrls.add(urlMap);
         }
-        avgResponseTime /= userUrls.size();
-
-//        List<Map<String, Object>> urlAnalytics = userUrls.stream().map(url -> Map.of(
-//                "shortUrl", url.getShortUrl(),
-//                "longUrl", url.getLongUrl(),
-//                "clickCount", url.getClicks(),
-//                "isActive", (url.getExpiresAt() == null || url.getExpiresAt().isAfter(LocalDateTime.now())),
-//                "lastAccessTime", url.getLastClicked(),
-//                "regionStats", url.getLocationStats(),
-//                "deviceStats", url.getDeviceStats(),
-//                "referrerStats", url.getReferrerStats()
-//        )).toList();
-
-        return ResponseEntity.ok(Map.of(
-                "total_urls", userUrls.size(),
-                "total_clicks", totalClicks,
-                "active_urls", activeUrls,
-                "expired_urls", expiredUrls,
-                "avg_response_time", avgResponseTime,
-                "unique_visitors", uniqueVisitors
-        ));
-
+        return ResponseEntity.ok(allUrls);
     }
 
 }

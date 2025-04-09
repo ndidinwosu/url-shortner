@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import com.shortking.shortUrl.model.BasicUrlRequest;
 import com.shortking.shortUrl.model.PremiumUrlRequest;
+import com.shortking.shortUrl.model.User;
+import com.shortking.shortUrl.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -25,6 +27,8 @@ import com.shortking.shortUrl.service.UrlService;
 public class UrlController {
     @Autowired
     private UrlService urlService;
+    @Autowired
+    private UserService userService;
 
     @Operation(summary = "Premium Shortening", description = "Shortens a Url for Premium Users, with custom options")
     @ApiResponses(value = {
@@ -72,15 +76,19 @@ public class UrlController {
 
     @PostMapping("/shorten-premium")
      // /shorten function that should be used for implementation. allows for custom alias and expiration time
-    public ResponseEntity<Map<String, Object>> shortenUrl(@RequestBody PremiumUrlRequest request) {
+    public ResponseEntity<Map<String, Object>> shortenUrl(@RequestBody PremiumUrlRequest request, @RequestHeader("Authorization") String authorizationHeader) {
         System.out.println("shorten called");
         try {
+            // use token to get user
+            String token = authorizationHeader.replace("Bearer ", "");
+            // get the current user from the token
+            String userId = userService.getCurrentUser(token).getId();
             String longUrl = request.getLongUrl();
             System.out.println(longUrl);
             String customAlias = request.getCustomAlias().isPresent() ? request.getCustomAlias().get() : null;
             Integer expiresIn = request.getExpiresIn().isPresent() ? request.getExpiresIn().get() : null;
 
-            Map<String, Object> urlResponse = urlService.generateShortUrl(longUrl, customAlias, expiresIn);
+            Map<String, Object> urlResponse = urlService.generateShortUrl(longUrl, customAlias, expiresIn, userId);
             return ResponseEntity.ok(urlResponse);
         } catch (Exception e) {
             // return a 422 response
@@ -147,7 +155,7 @@ public class UrlController {
             String longUrl = request.getLongUrl();
             System.out.println(longUrl);
             // sets custom alias and expiration to null automatically for basic shortening
-            Map<String, Object> urlResponse = urlService.generateShortUrl(longUrl, null, null);
+            Map<String, Object> urlResponse = urlService.generateShortUrl(longUrl, null, null, null);
             return ResponseEntity.ok(urlResponse);
         } catch (Exception e) {
             // return a 422 response

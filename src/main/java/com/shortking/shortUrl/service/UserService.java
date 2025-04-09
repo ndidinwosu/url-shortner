@@ -1,16 +1,23 @@
 package com.shortking.shortUrl.service;
 
+import java.time.Instant;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.shortking.shortUrl.exception.ValidationException;
 import com.shortking.shortUrl.model.User;
 import com.shortking.shortUrl.repository.UserRepository;
 import com.shortking.shortUrl.util.SecurityConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
-import java.time.Instant;
-import java.util.Optional;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 
 @Service
 public class UserService {
@@ -21,6 +28,10 @@ public class UserService {
 
     @Autowired
     private SecurityConfig securityConfig;
+
+    @Autowired
+    private EmailService emailService;
+
 
     public User registerUser(String email, String rawPassword) throws Exception {
         // Check if the email already exists
@@ -85,4 +96,73 @@ public class UserService {
             throw new ValidationException("Could not validate credentials");
         }
     }
+
+    public ResponseEntity<?> handleForgetPassword(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.ok(Map.of("message", "Email not found"));
+        }
+
+        User user = userOpt.get();
+
+
+        String resetToken = Jwts.builder()
+                .setSubject(user.getId())
+                .claim("email", user.getEmail())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // 15min valid
+                .signWith(SignatureAlgorithm.HS256, securityConfig.getSecretKey().getBytes()) 
+                .compact();
+
+        String resetLink = "https://shortking.xyz/reset-password?code=" + resetToken;
+
+        String content = """
+            Dear user,
+
+            Please click the following link to reset your password (valid for 15 minutes):
+
+            %s
+
+            If you did not request a password reset, please ignore this email.
+            """.formatted(resetLink);
+
+        emailService.send(user.getEmail(), "Reset Your Password", content);
+
+        return ResponseEntity.ok(Map.of("message", "If the email exists, a reset link has been sent."));
+    }
+
+
+    public ResponseEntity<?> handleResetPassword(String code, String newPassword) {
+        if (code == null || newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Missing code or newPassword"));
+        }
+    
+        try {
+            // 解码 token，获取 userId 和 email
+            String userId = securityConfig.extractUserId(code);
+            String email = securityConfig.extractEmail(code);
+    
+            // 检查 token 是否过期/无效
+            if (!securityConfig.validateToken(code)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid or expired reset code"));
+            }
+    
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+            }
+    
+            User user = userOpt.get();
+    
+            // 更新密码（记得 hash）
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+    
+            return ResponseEntity.ok(Map.of("message", "Password has been reset successfully"));
+    
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid reset code"));
+        }
+    }
+    
 }

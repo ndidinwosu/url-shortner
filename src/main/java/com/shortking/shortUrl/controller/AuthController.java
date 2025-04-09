@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shortking.shortUrl.exception.ValidationException;
@@ -221,4 +222,18 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of("message", "Logout successful"));
     }
+     @PostMapping("/forget-password")
+        public ResponseEntity<?> forgetPassword(@RequestParam String email) {
+            return userService.handleForgetPassword(email);
+        }
+
+        @PostMapping("/reset-password")
+        public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+            String code = body.get("code");
+            String newPassword = body.get("newPassword");
+
+            return userService.handleResetPassword(code, newPassword);
+}
+
+    
 }

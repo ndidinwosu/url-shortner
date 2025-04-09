@@ -58,5 +58,8 @@ public class SecurityConfig {
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
+    public String getSecretKey() {
+        return SECRET_KEY;
+    }
     
 }

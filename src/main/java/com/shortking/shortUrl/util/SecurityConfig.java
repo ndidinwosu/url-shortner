@@ -8,12 +8,14 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class SecurityConfig {
 
     // the key is generated using OpenSSL
-    private static final String SECRET_KEY = "U0cD4LJmDiz/7Lz8oOaQJ7wKnVqz06Pzo3xBk3HRrfE="; // Keep this secret
+    @Value("${security.secret-key}")
+    private String SECRET_KEY; // Keep this secret
     private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
 
     // generates jwt token for logging in

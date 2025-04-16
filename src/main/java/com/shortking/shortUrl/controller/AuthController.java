@@ -3,7 +3,7 @@ package com.shortking.shortUrl.controller;
 import java.util.Date;
 import java.util.Map;
 
-import com.shortking.shortUrl.model.ResetPasswordRequest;
+import com.shortking.shortUrl.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shortking.shortUrl.exception.ValidationException;
-import com.shortking.shortUrl.model.BlacklistedToken;
-import com.shortking.shortUrl.model.RegisterRequest;
-import com.shortking.shortUrl.model.User;
 import com.shortking.shortUrl.repository.BlacklistedTokenRepository;
 import com.shortking.shortUrl.service.UserService;
 import com.shortking.shortUrl.util.SecurityConfig;
@@ -325,6 +322,52 @@ public class AuthController {
         verificationCodeService.saveCode(email, code);
         emailService.sendVerificationCode(email, code);
         return ResponseEntity.ok("Verification code sent to email");
+    }
+
+
+    @Operation(summary = "google-login", description = "Log in an existing user with Google SSO")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Login successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = Map.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "success example",
+                                            value = "{\n" +
+                                                    "  \"access_token\": \"string\",\n" +
+                                                    "  \"token_type\": \"Bearer\"\n" +
+                                                    "}"
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Validation Error",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = "{\n" +
+                                            "  \"detail\": [\n" +
+                                            "    {\n" +
+                                            "      \"loc\": [\"body\", \"email\"],\n" +
+                                            "      \"msg\": \"Invalid Google token\",\n" +
+                                            "      \"type\": \"validation\"\n" +
+                                            "    }\n" +
+                                            "  ]\n" +
+                                            "}"
+                            )
+                    )
+            )
+    })
+    @PostMapping("/google-login")
+    public ResponseEntity<?> googleLoginUser(@RequestBody GoogleLoginRequest request) {
+        String googleToken = request.getToken();
+        Map<String, String> response = userService.loginWithGoogle(googleToken);
+        return ResponseEntity.ok(response);
     }
     
 }

@@ -1,11 +1,13 @@
 package com.shortking.shortUrl.service;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,6 +21,13 @@ import com.shortking.shortUrl.repository.UserRepository;
 import com.shortking.shortUrl.util.SecurityConfig;
 import com.shortking.shortUrl.service.EmailService;
 import com.shortking.shortUrl.service.VerificationCodeService;
+
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 
 
 import io.jsonwebtoken.Jwts;
@@ -39,6 +48,9 @@ public class UserService {
 
     @Autowired
     private VerificationCodeService verificationCodeService;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
 
 public User registerUser(RegisterRequest request) throws Exception {
     String email = request.getEmail();
@@ -174,5 +186,46 @@ public User registerUser(RegisterRequest request) throws Exception {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid reset code"));
         }
     }
-    
+
+
+
+    // verifies the google user token to allow sso
+    public Map<String, String> loginWithGoogle(String googleToken) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(googleToken);
+
+            // make sure we actually have a token to work with
+            if (idToken != null) {
+                String email = idToken.getPayload().getEmail();
+
+                // check if that email is in the database
+                Optional<User> userOpt = userRepository.findByEmail(email);
+                User user = null;
+                if (userOpt.isEmpty()) {
+                    // make a new user if they do not exist
+                    user = new User();
+                    user.setEmail(email);
+                    user = userRepository.save(user);
+                } else {
+                    // otherwise, use what is already in the database
+                    user = userOpt.get();
+                }
+
+                // create a JWT token for the authenticated user
+                String jwtToken = securityConfig.generateToken(user.getId(), user.getEmail());
+
+                return Map.of("access_token", jwtToken, "token_type", "Bearer");
+            } else {
+                throw new ValidationException("Invalid Google token");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to verify Google token", e);
+        }
+    }
+
+
 }

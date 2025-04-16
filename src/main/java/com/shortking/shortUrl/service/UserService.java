@@ -11,10 +11,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
 import com.shortking.shortUrl.exception.ValidationException;
+import com.shortking.shortUrl.model.RegisterRequest;
 import com.shortking.shortUrl.model.User;
 import com.shortking.shortUrl.repository.UserRepository;
 import com.shortking.shortUrl.util.SecurityConfig;
+import com.shortking.shortUrl.service.EmailService;
+import com.shortking.shortUrl.service.VerificationCodeService;
+
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -32,31 +37,36 @@ public class UserService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private VerificationCodeService verificationCodeService;
 
-    public User registerUser(String email, String rawPassword) throws Exception {
-        // Check if the email already exists
-        Optional<User> existing = userRepository.findByEmail(email);
-        if (existing.isPresent()) {
-            throw new Exception("Email already exists");
-        }
-        // Validate password length
-        if (rawPassword == null || rawPassword.length() < 6) {
-            throw new Exception("Password must be at least 6 characters long");
+public User registerUser(RegisterRequest request) throws Exception {
+    String email = request.getEmail();
+    String rawPassword = request.getPassword();
 
-        }
-        // hash password BEFORE saving to database
-        String hashedPassword = passwordEncoder.encode(rawPassword);
-
-        User user = new User();
-        user.setEmail(email);
-        // hash password here security: can't expose passwords in cloud database!!
-        user.setPassword(hashedPassword);
-        user.setIsActive(true);
-        user.setCreatedAt(Instant.now().toString());
-        userRepository.save(user);
-        return user;
+    if (!verificationCodeService.verifyCode(email, request.getVerificationCode())) {
+        throw new ValidationException("Invalid or expired verification code");
     }
 
+    Optional<User> existing = userRepository.findByEmail(email);
+    if (existing.isPresent()) {
+        throw new Exception("Email already exists");
+    }
+
+    if (rawPassword == null || rawPassword.length() < 6) {
+        throw new Exception("Password must be at least 6 characters long");
+    }
+
+    String hashedPassword = passwordEncoder.encode(rawPassword);
+
+    User user = new User();
+    user.setEmail(email);
+    user.setPassword(hashedPassword);
+    user.setIsActive(true);
+    user.setCreatedAt(Instant.now().toString());
+    userRepository.save(user);
+    return user;
+}
     public String authenticateUser(String email, String rawPassword) throws Exception {
         Optional<User> userOpt = userRepository.findByEmail(email);
 

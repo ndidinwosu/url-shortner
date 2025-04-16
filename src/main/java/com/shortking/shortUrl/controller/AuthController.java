@@ -21,6 +21,8 @@ import com.shortking.shortUrl.model.User;
 import com.shortking.shortUrl.repository.BlacklistedTokenRepository;
 import com.shortking.shortUrl.service.UserService;
 import com.shortking.shortUrl.util.SecurityConfig;
+import com.shortking.shortUrl.service.VerificationCodeService;
+import com.shortking.shortUrl.service.EmailService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,6 +44,11 @@ public class AuthController {
     @Autowired
     private SecurityConfig securityConfig;
 
+
+    @Autowired
+    private VerificationCodeService verificationCodeService;
+    @Autowired
+    private EmailService emailService;
     @Operation(summary = "register", description = "Register a new user")
     @ApiResponses(value = {
         @ApiResponse(
@@ -85,42 +92,24 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
         try {
-            String email = request.getEmail();
-            String password = request.getPassword();
-//            System.out.println("email: " + email + ", password: " + password);
-
-            // Basic validation; adjust fields as necessary
-            if (email == null || !email.contains("@")) {
-                throw new ValidationException("Email must contain '@'");
-            }
-            if (password == null || password.length() < 6) {
-                throw new ValidationException("Password must be at least 6 characters long");
-            }
-            
-            User user = userService.registerUser(email, password);
+            User user = userService.registerUser(request);
             return ResponseEntity.ok(Map.of(
-                "email", user.getEmail(),
-                "id", user.getId(),
-                "is_active", user.getIsActive(),
-                "created_at", user.getCreatedAt()
-            ));
+                    "email", user.getEmail(),
+                    "id", user.getId(),
+                    "is_active", user.getIsActive(),
+                    "created_at", user.getCreatedAt()));
         } catch (ValidationException ve) {
-            // Return a 422 response with your custom error format
             return ResponseEntity.status(422).body(Map.of(
-                "detail", 
-                // Replace the "loc" array as needed per field
-                java.util.List.of(Map.of(
-                    "loc", java.util.List.of("body", "email"),
-                    "msg", ve.getMessage(),
-                    "type", "validation"
-                ))
-            ));
+                    "detail",
+                    java.util.List.of(Map.of(
+                            "loc", java.util.List.of("body", "email"),
+                            "msg", ve.getMessage(),
+                            "type", "validation"))));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-
-
+    
     @Operation(summary = "login", description = "Log in an existing user")
 @ApiResponses(value = {
     @ApiResponse(
@@ -322,12 +311,20 @@ public class AuthController {
             )
     })
         @PostMapping("/reset-password")
-        public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest body) {
-            String code = body.getCode();
-            String newPassword = body.getNewPassword();
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest body) {
+        String code = body.getCode();
+        String newPassword = body.getNewPassword();
 
-            return userService.handleResetPassword(code, newPassword);
-}
+        return userService.handleResetPassword(code, newPassword);
+    }
 
+    @PostMapping("/send-code")
+    public ResponseEntity<String> sendVerificationCode(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String code = String.valueOf((int)(Math.random() * 900000) + 100000); // 6-digit code
+        verificationCodeService.saveCode(email, code);
+        emailService.sendVerificationCode(email, code);
+        return ResponseEntity.ok("Verification code sent to email");
+    }
     
 }

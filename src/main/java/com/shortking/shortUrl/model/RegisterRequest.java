@@ -11,6 +11,8 @@ public class RegisterRequest {
     @Schema(description = "User password", example = "password123")
     private String password;
 
+    private String verificationCode;
+
     public String getEmail() {
         return email;
     }
@@ -20,7 +22,14 @@ public class RegisterRequest {
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
+    }
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
     }
 }

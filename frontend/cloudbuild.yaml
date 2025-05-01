@@ -1,0 +1,71 @@
+steps:
+# Fetch API Key from Secret Manager and store it in a temporary file
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: "Fetch API Key"
+  entrypoint: "bash"
+  args:
+    - "-c"
+    - |
+      echo "Fetching API Key from Secret Manager..."
+      gcloud secrets versions access latest --secret=WEBRISK_API_KEY > /workspace/webrisk_api_key.txt
+      gcloud secrets versions access latest --secret=API_URL > /workspace/webrisk_api_url.txt
+
+# Read API Key and pass it as a build argument
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: "bash"
+  args:
+    - "-c"
+    - |
+      docker build -t us-south1-docker.pkg.dev/shortking/shortking-repo/shortking-frontend/shortking-frontend:$COMMIT_SHA \
+        --build-arg WEBRISK_API_KEY=$(cat /workspace/webrisk_api_key.txt) \
+        --build-arg API_URL=$(cat /workspace/webrisk_api_url.txt) \
+        .
+# Push the image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-south1-docker.pkg.dev/shortking/shortking-repo/shortking-frontend/shortking-frontend:$COMMIT_SHA']
+
+# Deploy image to Cloud Run (Multi-region)
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: 
+    - 'run'
+    - 'deploy'
+    - 'shortking-frontend'
+    - '--allow-unauthenticated'
+    - '--image'
+    - 'us-south1-docker.pkg.dev/shortking/shortking-repo/shortking-frontend/shortking-frontend:$COMMIT_SHA'
+    - '--region'
+    - 'us-south1'
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: 
+    - 'run'
+    - 'deploy'
+    - 'shortking-frontend'
+    - '--allow-unauthenticated'
+    - '--image'
+    - 'us-south1-docker.pkg.dev/shortking/shortking-repo/shortking-frontend/shortking-frontend:$COMMIT_SHA'
+    - '--region'
+    - 'us-central1'
+  
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: 
+    - 'run'
+    - 'deploy'
+    - 'shortking-frontend'
+    - '--allow-unauthenticated'
+    - '--image'
+    - 'us-south1-docker.pkg.dev/shortking/shortking-repo/shortking-frontend/shortking-frontend:$COMMIT_SHA'
+    - '--region'
+    - 'europe-west1'
+
+images:
+- 'us-south1-docker.pkg.dev/shortking/shortking-repo/shortking-frontend/shortking-frontend:$COMMIT_SHA'
+options:
+  logging: CLOUD_LOGGING_ONLY
+# availableSecrets:
+#   secretManager:
+#     - versionName: projects/$PROJECT_ID/secrets/WEBRISK_API_KEY/versions/latest
+#       env: 'WEBRISK_API_KEY'

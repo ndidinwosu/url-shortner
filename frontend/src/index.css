@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Spotify-inspired light theme */
+    --background: 0 0% 100%;
+    --foreground: 160 10% 7.8%;
+    --card: 0 0% 98%;
+    --card-foreground: 160 10% 7.8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 10% 7.8%;
+    --primary: 142 72% 42%; /* Spotify Green */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 160 2% 30%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 160 5% 65%;
+    --accent: 142 72% 42%; /* Spotify Green */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 160 2% 90%;
+    --input: 160 2% 90%;
+    --ring: 142 72% 42%; /* Spotify Green */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Spotify-inspired dark theme */
+    --background: 0 0% 7%; /* Spotify Black */
+    --foreground: 0 0% 100%;
+    --card: 0 0% 13%; /* Spotify Dark Gray */
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 142 72% 42%; /* Spotify Green */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 160 2% 18%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 142 72% 42%; /* Spotify Green */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 142 72% 42%; /* Spotify Green */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+}
+
+.container {
+  @apply mx-auto px-4 max-w-7xl;
+}

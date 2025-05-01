@@ -1,0 +1,75 @@
+{
+  "filePatterns": {
+    "include": [
+      "**/*.tsx",
+      "**/*.ts",
+      "**/*.js",
+      "**/*.json",
+      "**/*.css"
+    ],
+    "exclude": [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "tmp/**"
+    ]
+  },
+  "contextConfig": {
+    "maxFiles": 200,
+    "maxTotalSize": 10000000,
+    "rememberFiles": [
+      "src/App.tsx",
+      "src/components/Dashboard.tsx",
+      "src/lib/api.ts",
+      "src/contexts/auth-context.tsx",
+      "src/contexts/theme-context.tsx",
+      "src/components/url-shortener-form.tsx",
+      "src/components/analytics.tsx",
+      "package.json"
+    ]
+  },
+  "projectInfo": {
+    "name": "ShortKing URL Shortener",
+    "description": "A URL shortening application with analytics built using React, TypeScript and Vite.",
+    "repository": {
+      "type": "frontend"
+    },
+    "domains": [
+      "React",
+      "TypeScript",
+      "URL Shortening",
+      "Analytics",
+      "Authentication",
+      "Frontend Development"
+    ]
+  },
+  "architecture": {
+    "mainComponents": [
+      {
+        "name": "Dashboard",
+        "description": "Main dashboard component displaying URL statistics and management interface"
+      },
+      {
+        "name": "URL Shortener Form",
+        "description": "Form for creating and managing shortened URLs"
+      },
+      {
+        "name": "Analytics",
+        "description": "Component for displaying click analytics and metrics"
+      },
+      {
+        "name": "Authentication",
+        "description": "Components and context for handling user authentication"
+      }
+    ],
+    "dataFlow": "The application uses React Context for global state management including authentication and theme. API calls are made to a backend service for URL shortening and analytics data."
+  },
+  "conceptualKnowledge": {
+    "URLShortening": "The process of creating shortened URLs that redirect to original longer URLs",
+    "Analytics": "Tracking and analyzing URL click data including device, location, and referrer information",
+    "Authentication": "User login and registration system with JWT token-based auth and Google OAuth integration",
+    "UI/UX": "Modern UI with responsive design, light/dark theme support, and accessible components"
+  },
+  "additionalContext": "This is a frontend React application for URL shortening with analytics. It includes features like user authentication, URL creation with custom aliases, QR code generation, click analytics, and dashboard visualization. The application uses Tailwind CSS for styling, Highcharts for data visualization, and React Router for navigation. Mock data is used during development, with real API integration planned for production deployment."
+}
